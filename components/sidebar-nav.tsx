@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 
 interface NavItem {
   title: string;
-  href: string;
+  href?: string;
   icon: any;
   submenu?: { title: string; href: string }[];
 }
@@ -127,20 +127,32 @@ export function SidebarNav() {
             const hasSubmenu = item.submenu && item.submenu.length > 0;
 
             return (
-              <li key={item.href}>
+              <li key={item.href || item.title}>
                 <div className="flex items-center">
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    {!collapsed && <span>{item.title}</span>}
-                  </Link>
+                  {item.href ? (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      <item.icon className="h-5 w-5 shrink-0" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </Link>
+                  ) : (
+                    <button
+                      className={cn(
+                        "flex-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
+                        "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      <item.icon className="h-5 w-5 shrink-0" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </button>
+                  )}
                   {!collapsed && hasSubmenu && (
                     <Button
                       variant="ghost"
