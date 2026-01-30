@@ -57,6 +57,7 @@ const navItems: NavItem[] = [
   },
   {
     title: "Repository",
+    href: "/repository",
     icon: Package,
     submenu: [
       {
