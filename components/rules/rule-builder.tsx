@@ -326,20 +326,102 @@ export function RuleBuilder() {
           <CardTitle className="text-foreground">Remediation Workflow</CardTitle>
           <CardDescription>Define the remediation steps to execute when rule triggers</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <RemediationWorkflow 
             steps={workflowSteps} 
             onStepsChange={setWorkflowSteps}
           />
+          
+          {/* Remediation Workflow Notifications */}
+          <div className="border-t border-border pt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-foreground">Notifications</h4>
+              <Switch
+                checked={notificationEnabled}
+                onCheckedChange={setNotificationEnabled}
+              />
+            </div>
+            {notificationEnabled && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-foreground text-sm font-medium">Notification Trigger</Label>
+                  <Select value={notificationTrigger.remediation} onValueChange={(value: any) => setNotificationTrigger({ ...notificationTrigger, remediation: value })}>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="final_step_fail">Final Step Fails</SelectItem>
+                      <SelectItem value="any_fail">Any Step Fails</SelectItem>
+                      <SelectItem value="all_fail">All Steps Fail</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground text-sm font-medium">Notification Destination</Label>
+                  <div className="flex gap-2">
+                    <Select value={selectedNotification} onValueChange={setSelectedNotification}>
+                      <SelectTrigger className="bg-background flex-1">
+                        <SelectValue placeholder="Choose existing notification..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="email_default">Email - Admin Team</SelectItem>
+                        <SelectItem value="email_oncall">Email - On-Call Engineer</SelectItem>
+                        <SelectItem value="webhook_slack">Webhook - Slack</SelectItem>
+                        <SelectItem value="webhook_pagerduty">Webhook - PagerDuty</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      className="bg-transparent"
+                      onClick={() => setShowNewNotificationForm(!showNewNotificationForm)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                {showNewNotificationForm && (
+                  <div className="space-y-3 rounded-lg border border-dashed border-border p-4 bg-muted/30">
+                    <h4 className="text-sm font-medium text-foreground">Create New Notification</h4>
+                    <div className="grid gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Notification Name</Label>
+                        <Input placeholder="e.g., Critical Alert Email" className="bg-background text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Type</Label>
+                        <Select defaultValue="email">
+                          <SelectTrigger className="bg-background text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="webhook">Webhook</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Email / Webhook URL</Label>
+                        <Input placeholder="Enter email or webhook URL" className="bg-background text-sm" />
+                      </div>
+                      <Button size="sm" className="gap-2">
+                        <Save className="h-3 w-3" />
+                        Save Notification
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Verification Workflow Toggle */}
+      {/* Verification Workflow */}
       <Card className="bg-card border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-foreground">Enable Verification</CardTitle>
+              <CardTitle className="text-foreground">Verification Workflow</CardTitle>
               <CardDescription>Verify that remediation was successful</CardDescription>
             </div>
             <Switch
@@ -349,11 +431,93 @@ export function RuleBuilder() {
           </div>
         </CardHeader>
         {verificationEnabled && (
-          <CardContent className="border-t border-border pt-6">
+          <CardContent className="space-y-6 border-t border-border pt-6">
             <VerificationWorkflow 
               steps={verificationSteps} 
               onStepsChange={setVerificationSteps}
             />
+            
+            {/* Verification Workflow Notifications */}
+            <div className="border-t border-border pt-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-foreground">Notifications</h4>
+                <Switch
+                  checked={notificationEnabled}
+                  onCheckedChange={setNotificationEnabled}
+                />
+              </div>
+              {notificationEnabled && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-foreground text-sm font-medium">Notification Trigger</Label>
+                    <Select value={notificationTrigger.verification} onValueChange={(value: any) => setNotificationTrigger({ ...notificationTrigger, verification: value })}>
+                      <SelectTrigger className="bg-background">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="final_step_fail">Final Step Fails</SelectItem>
+                        <SelectItem value="any_fail">Any Step Fails</SelectItem>
+                        <SelectItem value="all_fail">All Steps Fail</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground text-sm font-medium">Notification Destination</Label>
+                    <div className="flex gap-2">
+                      <Select value={selectedNotification} onValueChange={setSelectedNotification}>
+                        <SelectTrigger className="bg-background flex-1">
+                          <SelectValue placeholder="Choose existing notification..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="email_default">Email - Admin Team</SelectItem>
+                          <SelectItem value="email_oncall">Email - On-Call Engineer</SelectItem>
+                          <SelectItem value="webhook_slack">Webhook - Slack</SelectItem>
+                          <SelectItem value="webhook_pagerduty">Webhook - PagerDuty</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        className="bg-transparent"
+                        onClick={() => setShowNewNotificationForm(!showNewNotificationForm)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  {showNewNotificationForm && (
+                    <div className="space-y-3 rounded-lg border border-dashed border-border p-4 bg-muted/30">
+                      <h4 className="text-sm font-medium text-foreground">Create New Notification</h4>
+                      <div className="grid gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Notification Name</Label>
+                          <Input placeholder="e.g., Critical Alert Email" className="bg-background text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Type</Label>
+                          <Select defaultValue="email">
+                            <SelectTrigger className="bg-background text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="email">Email</SelectItem>
+                              <SelectItem value="webhook">Webhook</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Email / Webhook URL</Label>
+                          <Input placeholder="Enter email or webhook URL" className="bg-background text-sm" />
+                        </div>
+                        <Button size="sm" className="gap-2">
+                          <Save className="h-3 w-3" />
+                          Save Notification
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </CardContent>
         )}
       </Card>
@@ -407,123 +571,7 @@ export function RuleBuilder() {
         </CardContent>
       </Card>
 
-      {/* Unified Notifications Configuration */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-foreground">Notifications</CardTitle>
-              <CardDescription>Configure notifications for remediation and verification workflows</CardDescription>
-            </div>
-            <Switch
-              checked={notificationEnabled}
-              onCheckedChange={setNotificationEnabled}
-            />
-          </div>
-        </CardHeader>
-        {notificationEnabled && (
-          <CardContent className="space-y-6 border-t border-border pt-6">
-            {/* Remediation Notifications */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <h4 className="font-medium text-foreground">Remediation Workflow Notifications</h4>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground text-sm font-medium">Notification Trigger</Label>
-                <Select value={notificationTrigger.remediation} onValueChange={(value: any) => setNotificationTrigger({ ...notificationTrigger, remediation: value })}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="final_step_fail">Final Step Fails</SelectItem>
-                    <SelectItem value="any_fail">Any Step Fails</SelectItem>
-                    <SelectItem value="all_fail">All Steps Fail</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            {/* Verification Notifications */}
-            {verificationEnabled && (
-              <div className="space-y-4 border-t border-border pt-4">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-foreground">Verification Workflow Notifications</h4>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground text-sm font-medium">Notification Trigger</Label>
-                  <Select value={notificationTrigger.verification} onValueChange={(value: any) => setNotificationTrigger({ ...notificationTrigger, verification: value })}>
-                    <SelectTrigger className="bg-background">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="final_step_fail">Final Step Fails</SelectItem>
-                      <SelectItem value="any_fail">Any Step Fails</SelectItem>
-                      <SelectItem value="all_fail">All Steps Fail</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-
-            {/* Notification Selection */}
-            <div className="border-t border-border pt-4 space-y-2">
-              <Label className="text-foreground text-sm font-medium">Select Notification Destination</Label>
-              <div className="flex gap-2">
-                <Select value={selectedNotification} onValueChange={setSelectedNotification}>
-                  <SelectTrigger className="bg-background flex-1">
-                    <SelectValue placeholder="Choose existing notification..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="email_default">Email - Admin Team</SelectItem>
-                    <SelectItem value="email_oncall">Email - On-Call Engineer</SelectItem>
-                    <SelectItem value="webhook_slack">Webhook - Slack</SelectItem>
-                    <SelectItem value="webhook_pagerduty">Webhook - PagerDuty</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="outline"
-                  className="bg-transparent"
-                  onClick={() => setShowNewNotificationForm(!showNewNotificationForm)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            {showNewNotificationForm && (
-              <div className="space-y-3 rounded-lg border border-dashed border-border p-4 bg-muted/30">
-                <h4 className="text-sm font-medium text-foreground">Create New Notification</h4>
-                <div className="grid gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Notification Name</Label>
-                    <Input placeholder="e.g., Critical Alert Email" className="bg-background text-sm" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Type</Label>
-                    <Select defaultValue="email">
-                      <SelectTrigger className="bg-background text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="webhook">Webhook</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Email / Webhook URL</Label>
-                    <Input placeholder="Enter email or webhook URL" className="bg-background text-sm" />
-                  </div>
-                  <Button size="sm" className="gap-2">
-                    <Save className="h-3 w-3" />
-                    Save Notification
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        )}
-      </Card>
     </div>
   );
 }
