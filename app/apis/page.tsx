@@ -1,3 +1,5 @@
+'use client';
+
 import { AppShell } from "@/components/app-shell";
 import { Header } from "@/components/header";
 import { ApiStats } from "@/components/apis/api-stats";
