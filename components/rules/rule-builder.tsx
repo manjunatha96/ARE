@@ -24,6 +24,7 @@ import { validateRQL, conditionsToRQL, RQL_SYNTAX_HELP } from "@/lib/rql-validat
 import { Condition, ConditionGroup, createConditionGroup, createSimpleCondition, conditionToRQL } from "@/lib/condition-types";
 import { NestedConditionRenderer } from "./nested-condition-renderer";
 import { RemediationWorkflow } from "@/components/workflow/remediation-workflow";
+import { VerificationWorkflow } from "@/components/workflow/verification-workflow";
 import { ActionExecutionControl } from "@/lib/action-control";
 import { scriptOptions, apiOptions } from "@/lib/config-options";
 
@@ -70,14 +71,25 @@ export function RuleBuilder() {
   const [silenceEnabled, setSilenceEnabled] = useState(true);
   const [silenceDuration, setSilenceDuration] = useState("30");
   const [silenceUnit, setSilenceUnit] = useState<"minutes" | "hours" | "days">("minutes");
-  // Notification Configuration
+  // Unified Notification Configuration
   const [notificationEnabled, setNotificationEnabled] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState("");
-  const [notificationTrigger, setNotificationTrigger] = useState("all_fail");
+  const [notificationTrigger, setNotificationTrigger] = useState<{ remediation: "final_step_fail" | "any_fail" | "all_fail", verification: "final_step_fail" | "any_fail" | "all_fail" }>({ remediation: "all_fail", verification: "all_fail" });
   const [showNewNotificationForm, setShowNewNotificationForm] = useState(false);
-  // Verification Steps
+  // Verification Workflow
   const [verificationEnabled, setVerificationEnabled] = useState(false);
-  const [verificationSteps, setVerificationSteps] = useState<{description: string; expectedResult: string}[]>([]);
+  const [verificationSteps, setVerificationSteps] = useState<any[]>([
+    {
+      id: "v1",
+      stepNumber: 1,
+      actionType: "api_check",
+      config: {
+        actionName: "",
+        expectedResult: "",
+        timeoutSeconds: "30",
+      },
+    },
+  ]);
 
   const handleRQLChange = (query: string) => {
     setRqlQuery(query);
@@ -322,6 +334,30 @@ export function RuleBuilder() {
         </CardContent>
       </Card>
 
+      {/* Verification Workflow Toggle */}
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-foreground">Enable Verification</CardTitle>
+              <CardDescription>Verify that remediation was successful</CardDescription>
+            </div>
+            <Switch
+              checked={verificationEnabled}
+              onCheckedChange={setVerificationEnabled}
+            />
+          </div>
+        </CardHeader>
+        {verificationEnabled && (
+          <CardContent className="border-t border-border pt-6">
+            <VerificationWorkflow 
+              steps={verificationSteps} 
+              onStepsChange={setVerificationSteps}
+            />
+          </CardContent>
+        )}
+      </Card>
+
       {/* Rule Silence Configuration - MANDATORY */}
       <Card className="bg-card border-border border-orange-500/50">
         <CardHeader>
@@ -371,13 +407,13 @@ export function RuleBuilder() {
         </CardContent>
       </Card>
 
-      {/* Notification Configuration */}
+      {/* Unified Notifications Configuration */}
       <Card className="bg-card border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-foreground">Failure Notifications</CardTitle>
-              <CardDescription>Send notifications when remediation fails</CardDescription>
+              <CardTitle className="text-foreground">Notifications</CardTitle>
+              <CardDescription>Configure notifications for remediation and verification workflows</CardDescription>
             </div>
             <Switch
               checked={notificationEnabled}
@@ -386,22 +422,52 @@ export function RuleBuilder() {
           </div>
         </CardHeader>
         {notificationEnabled && (
-          <CardContent className="space-y-4 border-t border-border pt-4">
-            <div className="space-y-2">
-              <Label className="text-foreground text-sm font-medium">Notification Trigger</Label>
-              <Select value={notificationTrigger} onValueChange={setNotificationTrigger}>
-                <SelectTrigger className="bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="final_step_fail">Final Step Fails</SelectItem>
-                  <SelectItem value="any_fail">Any Step Fails</SelectItem>
-                  <SelectItem value="all_fail">All Steps Fail</SelectItem>
-                </SelectContent>
-              </Select>
+          <CardContent className="space-y-6 border-t border-border pt-6">
+            {/* Remediation Notifications */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <h4 className="font-medium text-foreground">Remediation Workflow Notifications</h4>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground text-sm font-medium">Notification Trigger</Label>
+                <Select value={notificationTrigger.remediation} onValueChange={(value: any) => setNotificationTrigger({ ...notificationTrigger, remediation: value })}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="final_step_fail">Final Step Fails</SelectItem>
+                    <SelectItem value="any_fail">Any Step Fails</SelectItem>
+                    <SelectItem value="all_fail">All Steps Fail</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-foreground text-sm font-medium">Select Notification</Label>
+
+            {/* Verification Notifications */}
+            {verificationEnabled && (
+              <div className="space-y-4 border-t border-border pt-4">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-medium text-foreground">Verification Workflow Notifications</h4>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground text-sm font-medium">Notification Trigger</Label>
+                  <Select value={notificationTrigger.verification} onValueChange={(value: any) => setNotificationTrigger({ ...notificationTrigger, verification: value })}>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="final_step_fail">Final Step Fails</SelectItem>
+                      <SelectItem value="any_fail">Any Step Fails</SelectItem>
+                      <SelectItem value="all_fail">All Steps Fail</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Notification Selection */}
+            <div className="border-t border-border pt-4 space-y-2">
+              <Label className="text-foreground text-sm font-medium">Select Notification Destination</Label>
               <div className="flex gap-2">
                 <Select value={selectedNotification} onValueChange={setSelectedNotification}>
                   <SelectTrigger className="bg-background flex-1">
@@ -455,75 +521,6 @@ export function RuleBuilder() {
                 </div>
               </div>
             )}
-          </CardContent>
-        )}
-      </Card>
-
-      {/* Verification Steps */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-foreground">Verification Steps</CardTitle>
-              <CardDescription>Verify changes after successful remediation</CardDescription>
-            </div>
-            <Switch
-              checked={verificationEnabled}
-              onCheckedChange={setVerificationEnabled}
-            />
-          </div>
-        </CardHeader>
-        {verificationEnabled && (
-          <CardContent className="space-y-4 border-t border-border pt-4">
-            <div className="space-y-3">
-              {verificationSteps.map((step, idx) => (
-                <div key={idx} className="rounded-lg border border-border p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground">Step {idx + 1}</p>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setVerificationSteps(verificationSteps.filter((_, i) => i !== idx));
-                      }}
-                      className="h-8 w-8"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <Input
-                    placeholder="Verification description"
-                    value={step.description}
-                    onChange={(e) => {
-                      const newSteps = [...verificationSteps];
-                      newSteps[idx].description = e.target.value;
-                      setVerificationSteps(newSteps);
-                    }}
-                    className="bg-background text-sm"
-                  />
-                  <Input
-                    placeholder="Expected result"
-                    value={step.expectedResult}
-                    onChange={(e) => {
-                      const newSteps = [...verificationSteps];
-                      newSteps[idx].expectedResult = e.target.value;
-                      setVerificationSteps(newSteps);
-                    }}
-                    className="bg-background text-sm"
-                  />
-                </div>
-              ))}
-            </div>
-            <Button
-              variant="outline"
-              className="w-full gap-2 bg-transparent"
-              onClick={() => {
-                setVerificationSteps([...verificationSteps, { description: "", expectedResult: "" }]);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              Add Verification Step
-            </Button>
           </CardContent>
         )}
       </Card>
