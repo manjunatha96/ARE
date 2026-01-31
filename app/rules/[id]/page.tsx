@@ -1,3 +1,5 @@
+'use client';
+
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,11 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ApprovalDetails } from "@/components/rules/approval-details";
 import Link from "next/link";
-
-export const metadata = {
-  title: "Rule Details",
-  description: "View rule configuration and approval status",
-};
+import { useState } from "react";
 
 // Mock rule data - replace with real data from database
 const mockRule = {
@@ -35,7 +33,12 @@ const mockRule = {
 };
 
 export default function RuleDetailsPage({ params }: { params: { id: string } }) {
-  const rule = mockRule; // In real app, fetch based on params.id
+  const [approvalStatus, setApprovalStatus] = useState(mockRule.approvalStatus);
+  
+  // TODO: Replace with actual permission check from user session/auth
+  const isSuperAdmin = true; // For demo, set to true. In real app, check user role
+  
+  const rule = { ...mockRule, approvalStatus };
 
   return (
     <div className="space-y-6 pb-8">
@@ -53,6 +56,7 @@ export default function RuleDetailsPage({ params }: { params: { id: string } }) 
 
       {/* Approval Status Card */}
       <ApprovalDetails
+        ruleId={rule.id}
         status={rule.approvalStatus}
         createdBy={rule.createdBy}
         createdAt={rule.createdAt}
@@ -64,6 +68,8 @@ export default function RuleDetailsPage({ params }: { params: { id: string } }) 
             : undefined
         }
         rejectedAt={rule.approvalStatus === "rejected" ? new Date() : undefined}
+        isSuperAdmin={isSuperAdmin}
+        onApprovalStatusChange={setApprovalStatus}
       />
 
       {/* Rule Configuration */}

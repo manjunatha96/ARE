@@ -1,14 +1,29 @@
 'use client';
 
+import { useState } from "react"
+
+import { Label } from "@/components/ui/label"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, AlertTriangle, Check, X } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export type ApprovalStatus = "pending_approval" | "approved" | "rejected" | "draft";
 
 interface ApprovalDetailsProps {
+  ruleId: string;
   status: ApprovalStatus;
   createdBy?: string;
   createdAt?: Date;
@@ -16,9 +31,12 @@ interface ApprovalDetailsProps {
   approvedAt?: Date;
   rejectionReason?: string;
   rejectedAt?: Date;
+  isSuperAdmin?: boolean;
+  onApprovalStatusChange?: (newStatus: ApprovalStatus) => void;
 }
 
 export function ApprovalDetails({
+  ruleId,
   status,
   createdBy,
   createdAt,
@@ -26,7 +44,53 @@ export function ApprovalDetails({
   approvedAt,
   rejectionReason,
   rejectedAt,
+  isSuperAdmin = false,
+  onApprovalStatusChange,
 }: ApprovalDetailsProps) {
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [rejectionComment, setRejectionComment] = useState("");
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+
+  const handleApprove = async () => {
+    setIsApproving(true);
+    try {
+      const response = await fetch(`/api/rules/${ruleId}/approve`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        onApprovalStatusChange?.("approved");
+      }
+    } catch (error) {
+      console.error("[v0] Approval error:", error);
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectionComment.trim()) {
+      alert("Please provide a reason for rejection");
+      return;
+    }
+    setIsRejecting(true);
+    try {
+      const response = await fetch(`/api/rules/${ruleId}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: rejectionComment }),
+      });
+      if (response.ok) {
+        onApprovalStatusChange?.("rejected");
+        setShowRejectDialog(false);
+        setRejectionComment("");
+      }
+    } catch (error) {
+      console.error("[v0] Rejection error:", error);
+    } finally {
+      setIsRejecting(false);
+    }
+  };
   return (
     <Card className="bg-card border-border">
       <CardHeader>
@@ -130,10 +194,78 @@ export function ApprovalDetails({
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Super Admin Approval Actions */}
+        {isSuperAdmin && status === "pending_approval" && (
+          <div className="border-t border-border pt-4 space-y-3">
+            <h4 className="text-sm font-semibold text-foreground">Admin Actions</h4>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleApprove}
+                disabled={isApproving}
+                className="gap-2 flex-1"
+              >
+                <Check className="h-4 w-4" />
+                {isApproving ? "Approving..." : "Approve Rule"}
+              </Button>
+
+              <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="gap-2 flex-1"
+                    disabled={isRejecting}
+                  >
+                    <X className="h-4 w-4" />
+                    Reject Rule
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Reject Rule</DialogTitle>
+                    <DialogDescription>
+                      Provide feedback on why this rule is being rejected. The creator will use this to make improvements.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="rejection-reason" className="text-foreground">
+                        Rejection Reason
+                      </Label>
+                      <Textarea
+                        id="rejection-reason"
+                        placeholder="Explain why this rule cannot be approved (e.g., unclear conditions, resource limits, security concerns)..."
+                        value={rejectionComment}
+                        onChange={(e) => setRejectionComment(e.target.value)}
+                        className="bg-background min-h-24"
+                      />
+                    </div>
+                    <div className="flex gap-3 justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowRejectDialog(false);
+                          setRejectionComment("");
+                        }}
+                        className="bg-transparent"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleReject}
+                        disabled={isRejecting || !rejectionComment.trim()}
+                      >
+                        {isRejecting ? "Rejecting..." : "Confirm Rejection"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
-
-// Add this import at the top of the file
-import { Label } from "@/components/ui/label";
