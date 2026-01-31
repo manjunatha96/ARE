@@ -19,6 +19,7 @@ import {
   RotateCcw,
   Package,
   ChevronDown,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
