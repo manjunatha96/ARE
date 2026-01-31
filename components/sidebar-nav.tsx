@@ -19,6 +19,8 @@ import {
   RotateCcw,
   Package,
   ChevronDown,
+  CheckSquare,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -74,6 +76,15 @@ const navItems: NavItem[] = [
     title: "Audit & Compliance",
     href: "/audit-compliance",
     icon: Shield,
+  },
+];
+
+// Admin-only items (shown only to super admins)
+const adminNavItems: NavItem[] = [
+  {
+    title: "Rule Approvals",
+    href: "/admin/approvals",
+    icon: CheckSquare,
   },
 ];
 
@@ -192,6 +203,39 @@ export function SidebarNav() {
                     })}
                   </ul>
                 )}
+              </li>
+            );
+          })}
+
+          {/* Admin Section Separator */}
+          <li className="my-4 border-t border-border pt-4">
+            {!collapsed && (
+              <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Admin
+              </p>
+            )}
+          </li>
+
+          {/* Admin Items */}
+          {adminNavItems.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href));
+
+            return (
+              <li key={item.href || item.title}>
+                <Link
+                  href={item.href!}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  {!collapsed && <span>{item.title}</span>}
+                </Link>
               </li>
             );
           })}
