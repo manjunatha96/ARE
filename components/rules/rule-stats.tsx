@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, CheckCircle, XCircle, Zap } from "lucide-react";
+import { FileText, CheckCircle, XCircle, Clock } from "lucide-react";
 
 const stats = [
   {
@@ -23,16 +23,28 @@ const stats = [
     description: "Temporarily inactive",
   },
   {
-    title: "Recently Triggered",
-    value: "156",
-    icon: Zap,
-    description: "Last 24 hours",
+    title: "Pending Approval",
+    value: "5",
+    icon: Clock,
+    description: "Awaiting review",
+  },
+  {
+    title: "Approved Rules",
+    value: "42",
+    icon: CheckCircle,
+    description: "Ready to execute",
+  },
+  {
+    title: "Rejected Rules",
+    value: "1",
+    icon: XCircle,
+    description: "Need revision",
   },
 ];
 
 export function RuleStats() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {stats.map((stat) => (
         <Card key={stat.title} className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
