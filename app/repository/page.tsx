@@ -1,3 +1,5 @@
+'use client';
+
 import { AppShell } from "@/components/app-shell";
 import { Header } from "@/components/header";
 import { RepositoryManager } from "@/components/repository/repository-manager";
